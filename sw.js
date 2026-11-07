@@ -1,5 +1,5 @@
 // shortcut: cache-first; al cambiar cualquier archivo hay que subir VERSION para que el teléfono lo actualice.
-const VERSION = "ingles-v1";
+const VERSION = "ingles-v2";
 const FILES = ["./", "index.html", "app.js", "data.js", "manifest.webmanifest", "icon-192.png", "icon-512.png"];
 
 self.addEventListener("install", e => e.waitUntil(caches.open(VERSION).then(c => c.addAll(FILES)).then(() => self.skipWaiting())));

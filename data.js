@@ -86,6 +86,43 @@ const VOCAB = {
     ["follow-up", "seguimiento", "I'll send a follow-up email."],
     ["tool", "herramienta", "I use AI tools at work."]
   ],
+  // Expresiones: el sentido NO sale de traducir palabra por palabra.
+  expresiones: [
+    ["take care of", "ocuparse de (no: 'tomar cuidado')", "I take care of the suppliers and the orders."],
+    ["in charge of", "a cargo de / responsable de", "I'm in charge of the night shift."],
+    ["get along with", "llevarse bien con", "I get along well with my team."],
+    ["run out of", "quedarse sin", "We ran out of cheese on Saturday."],
+    ["figure out", "averiguar / resolver (no: 'figurar')", "I'll figure out the problem."],
+    ["set up", "montar / organizar / configurar", "I set up a new system for stock control."],
+    ["deal with", "lidiar con / encargarse de", "I deal with difficult customers every day."],
+    ["carry out", "llevar a cabo / realizar", "We carried out the renovation in two months."],
+    ["look forward to", "tener muchas ganas de (no: 'mirar adelante')", "I look forward to working with you."],
+    ["follow up", "hacer seguimiento", "I'll follow up next week."],
+    ["keep track of", "llevar el control de", "I keep track of costs in a spreadsheet."],
+    ["catch up", "ponerse al día", "Let's catch up on Monday."],
+    ["fill in for", "reemplazar a alguien (por un tiempo)", "I filled in for the manager on Sundays."],
+    ["on time", "puntual / en fecha", "We finished the project on time."],
+    ["on track", "encaminado / según lo previsto", "The project is on track."],
+    ["behind schedule", "atrasado", "The site is two weeks behind schedule."],
+    ["hands-on", "práctico / que se involucra directamente", "I'm a hands-on manager."],
+    ["a quick learner", "alguien que aprende rápido", "I'm a quick learner."],
+    ["it's up to you", "depende de ti / tú decides (no: 'está arriba de ti')", "The time is up to you."],
+    ["I'm on it", "me encargo ya / estoy en eso", "The client is waiting? I'm on it."],
+    ["make sure", "asegurarse", "I make sure the kitchen is clean."],
+    ["get the job done", "cumplir / sacar el trabajo adelante", "I always get the job done."],
+    ["out of stock", "agotado / sin stock", "This item is out of stock."],
+    ["by the way", "por cierto", "By the way, I speak Spanish too."],
+    ["I see", "ya entiendo (no: 'yo veo')", "I see. Thank you for explaining."],
+    ["no worries", "no pasa nada / tranquilo", "No worries, I'll fix it."],
+    ["to be honest", "sinceramente", "To be honest, my English is improving."],
+    ["what do you mean?", "¿qué quieres decir?", "Sorry, what do you mean by that?"],
+    ["actually", "en realidad (no: 'actualmente')", "Actually, I started in 2018."],
+    ["eventually", "finalmente / con el tiempo (no: 'eventualmente')", "Eventually, I became site manager."],
+    ["assist", "ayudar (no: 'asistir' a un lugar)", "I assisted the architect with drawings."],
+    ["attend", "asistir / ir a (un lugar o evento)", "I attended a Revit course."],
+    ["realize", "darse cuenta (no: 'realizar')", "I realized the measures were wrong."],
+    ["career", "carrera profesional (no: 'carrera' universitaria = degree)", "I want to grow my career."]
+  ],
   basico: [
     ["I'm looking for", "estoy buscando", "I'm looking for a new job."],
     ["I used to", "solía", "I used to work in Venezuela."],
@@ -104,7 +141,7 @@ const VOCAB = {
 
 const CATS = {
   entrevista: "Entrevista", obra: "Obra y construcción", gastronomia: "Gastronomía",
-  operaciones: "Operaciones y oficina", basico: "Frases clave", verbos: "Verbos irregulares"
+  operaciones: "Operaciones y oficina", expresiones: "Expresiones (no traducir literal)", basico: "Frases clave", verbos: "Verbos irregulares"
 };
 
 // [base, pasado, participio, español]
