@@ -205,9 +205,12 @@ if (typeof document !== "undefined") {
       const c = queue[0];
       view(`<p class="muted">${CATS[c.cat]} · quedan ${queue.length}</p>
         <div class="card"><div class="front">${esc(c.front)}</div>${audioBtns(c.say)}
-        <p class="hint" id="hint1">1️⃣ Escúchala y piensa: ¿qué significa?</p>
-        <div id="back" hidden><p class="hint">2️⃣ ¿Acertaste? Repite la frase en voz alta y elige abajo con sinceridad.</p><div class="back">${esc(c.back)}</div>${c.ex ? `<p class="ex">${esc(c.ex)}</p>${audioBtns(c.ex)}` : ""}
-        <button id="mic">🎤 Repetir en voz alta</button><p id="heard" class="muted"></p></div></div>
+        <p class="hint" id="hint1"><b>Paso 1:</b> piensa en silencio qué significa en español.<br>Si no lo sabes, no pasa nada: toca <b>Ver respuesta</b>.</p>
+        <div id="back" hidden><div class="back">${esc(c.back)}</div>
+        <p class="hint"><b>Paso 2:</b> escucha la frase de ejemplo 🔊 y <b>léela tú en voz alta</b> tocando 🎤. El teléfono te dice si se te entiende.</p>
+        ${c.ex ? `<p class="ex">${esc(c.ex)}</p>${audioBtns(c.ex)}` : ""}
+        <button id="mic">🎤 Leer la frase en voz alta</button><p id="heard" class="muted"></p>
+        <p class="hint"><b>Paso 3:</b> ¿sabías el significado en el paso 1? Elige abajo.</p></div></div>
         <button class="big" id="show">Ver respuesta</button>
         <div class="row" id="grade" hidden><button class="bad" id="no">❌ No la sabía</button><button class="good" id="yes">✅ La sabía</button></div>
         <button class="ghost" data-go="home">← Inicio</button>`);
