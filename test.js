@@ -1,7 +1,7 @@
 // Autocomprobación: node test.js
 const assert = require("assert");
 const { VOCAB, VERBS, GRAMMAR, INTERVIEW } = require("./data.js");
-const { review, bumpStreak, buildDeck, dueCards, compareWords, INTERVALS } = require("./app.js");
+const { review, bumpStreak, buildDeck, dueCards, compareWords, parseBackup, INTERVALS } = require("./app.js");
 
 // Repaso espaciado
 assert.deepStrictEqual(review(undefined, true, 100), { box: 1, due: 101 });
@@ -23,6 +23,16 @@ assert.strictEqual(dueCards(deck, { [deck[0].id]: { box: 1, due: 6 } }, 5, 0).le
 
 // Dictado
 assert.deepStrictEqual(compareWords("I went home.", "i went house").map(x => x.ok), [true, true, false]);
+
+// Mis palabras van primero
+assert.strictEqual(buildDeck(VOCAB, VERBS, [{ en: "Gig", es: "trabajo" }])[0].id, "mias:gig");
+
+// Copia de seguridad: acepta la propia, rechaza basura
+const ok = parseBackup(JSON.stringify({ cards: { a: { box: 2, due: 5 } }, mine: [{ en: "x", es: "y" }, { en: 1 }], streak: { last: 3, count: 2 } }));
+assert.deepStrictEqual(ok.mine, [{ en: "x", es: "y", ex: "" }]);
+assert.strictEqual(parseBackup("hola"), null);
+assert.strictEqual(parseBackup('{"cards":{"a":{"box":"x"}}}'), null);
+assert.strictEqual(parseBackup('{"cards":[]}'), null);
 
 // Datos coherentes
 GRAMMAR.forEach(g => assert.ok(g.a >= 0 && g.a < g.o.length && g.q.includes("___"), g.q));

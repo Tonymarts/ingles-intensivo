@@ -17,8 +17,9 @@ function bumpStreak(streak, t) {
   return { last: t, count: streak.last === t - 1 ? streak.count + 1 : 1 };
 }
 
-function buildDeck(VOCAB, VERBS) {
-  const deck = [];
+function buildDeck(VOCAB, VERBS, mine = []) {
+  // Tus palabras van primero para que entren antes que las nuevas del día.
+  const deck = mine.map(m => ({ id: "mias:" + m.en.toLowerCase(), cat: "mias", front: m.en, back: m.es, ex: m.ex || "", say: m.en }));
   for (const [cat, list] of Object.entries(VOCAB))
     for (const [en, es, ex] of list) deck.push({ id: cat + ":" + en, cat, front: en, back: es, ex, say: en });
   for (const [b, p, pp, es] of VERBS)
@@ -41,14 +42,25 @@ function compareWords(target, typed) {
   return normWords(target).map(w => ({ w, ok: got.includes(w) }));
 }
 
-if (typeof module !== "undefined") module.exports = { review, bumpStreak, buildDeck, dueCards, compareWords, INTERVALS };
+// Valida una copia de seguridad pegada por el usuario antes de reemplazar el progreso.
+function parseBackup(text) {
+  let d;
+  try { d = JSON.parse(text.trim()); } catch { return null; }
+  if (!d || typeof d !== "object" || typeof d.cards !== "object" || Array.isArray(d.cards)) return null;
+  for (const v of Object.values(d.cards)) if (!v || typeof v.box !== "number" || typeof v.due !== "number") return null;
+  const mine = Array.isArray(d.mine) ? d.mine.filter(m => m && typeof m.en === "string" && typeof m.es === "string").map(m => ({ en: m.en.slice(0, 120), es: m.es.slice(0, 200), ex: typeof m.ex === "string" ? m.ex.slice(0, 300) : "" })) : [];
+  const st = d.streak && typeof d.streak.count === "number" ? { last: typeof d.streak.last === "number" ? d.streak.last : null, count: d.streak.count } : { last: null, count: 0 };
+  return { cards: d.cards, mine, streak: st };
+}
+
+if (typeof module !== "undefined") module.exports = { review, bumpStreak, buildDeck, dueCards, compareWords, parseBackup, INTERVALS };
 
 // ---------- Interfaz ----------
 if (typeof document !== "undefined") {
   const KEY = "ingles-v1";
   const $ = s => document.querySelector(s);
   const T = dayNumber();
-  const DECK = buildDeck(VOCAB, VERBS);
+  let DECK;
   const MOTIVOS = [
     "Cada palabra de hoy te acerca a un trabajo mejor para tu familia.",
     "10 minutos hoy valen más que 2 horas el domingo.",
@@ -60,9 +72,11 @@ if (typeof document !== "undefined") {
 
   let S;
   try { S = JSON.parse(localStorage.getItem(KEY)) || {}; } catch { S = {}; }
-  S.cards ||= {}; S.streak ||= { last: null, count: 0 };
+  S.cards ||= {}; S.streak ||= { last: null, count: 0 }; S.mine ||= [];
   if (!S.daily || S.daily.day !== T) S.daily = { day: T, done: 0, fresh: 0 };
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch {} };
+  const rebuild = () => { DECK = buildDeck(VOCAB, VERBS, S.mine); };
+  rebuild();
 
   function did() { // cuenta una respuesta para la meta diaria y la racha
     S.daily.done++;
@@ -122,7 +136,59 @@ if (typeof document !== "undefined") {
       <button class="big" data-go="grammar">✏️ Gramática y verbos</button>
       <button class="big" data-go="dictation">🎧 Escuchar y escribir</button>
       <button class="big" data-go="interview">💼 Practicar entrevista</button>
+      <button class="big" data-go="mine">➕ Mis palabras <small>${S.mine.length}</small></button>
+      <button class="big ghost" data-go="backup">🔄 Pasar mi progreso a otro dispositivo</button>
       <button class="big ghost" data-go="help">⚙️ Recordatorio y ayuda</button>`);
+  }
+
+  function mine() {
+    view(`<h2>➕ Mis palabras</h2>
+      <p class="muted">¿Viste una palabra o expresión que no entiendes (en una oferta, una serie, una entrevista)? Guárdala aquí y aparecerá en tus tarjetas.</p>
+      <input id="en" placeholder="En inglés (ej: get along with)" autocapitalize="off" autocomplete="off" spellcheck="false" maxlength="120">
+      <input id="es" placeholder="Qué significa (ej: llevarse bien con)" maxlength="200">
+      <input id="ex" placeholder="Frase de ejemplo (opcional)" autocapitalize="off" maxlength="300">
+      <div class="row"><button data-say="" id="try">🔊 Escuchar</button><button class="good" id="add">Guardar</button></div>
+      <p id="msg" class="muted"></p>
+      ${S.mine.map((m, i) => `<div class="card"><b>${esc(m.en)}</b> — ${esc(m.es)}${m.ex ? `<br><span class="muted">${esc(m.ex)}</span>` : ""}
+        <div class="row"><button data-say="${esc(m.en)}">🔊</button><button class="bad" data-del="${i}">Borrar</button></div></div>`).reverse().join("")}
+      <button class="ghost" data-go="home">← Inicio</button>`);
+    $("#try").onclick = () => $("#en").value.trim() && say($("#en").value.trim());
+    $("#add").onclick = () => {
+      const en = $("#en").value.trim(), es = $("#es").value.trim(), ex = $("#ex").value.trim();
+      if (!en || !es) return ($("#msg").textContent = "Escribe la palabra y su significado.");
+      if (S.mine.some(m => m.en.toLowerCase() === en.toLowerCase())) return ($("#msg").textContent = "Esa ya la tienes guardada.");
+      S.mine.push({ en, es, ex }); save(); rebuild(); mine();
+      $("#msg").textContent = "✅ Guardada. Te saldrá en Tarjetas.";
+    };
+    document.querySelectorAll("[data-del]").forEach(b => b.onclick = () => {
+      const m = S.mine[+b.dataset.del];
+      if (!confirm(`¿Borrar "${m.en}"?`)) return;
+      S.mine.splice(+b.dataset.del, 1); delete S.cards["mias:" + m.en.toLowerCase()]; save(); rebuild(); mine();
+    });
+  }
+
+  function backup() {
+    const data = JSON.stringify({ cards: S.cards, mine: S.mine, streak: S.streak });
+    view(`<h2>🔄 Pasar mi progreso</h2>
+      <p><b>1. En este dispositivo:</b> copia tu progreso y mándatelo (por WhatsApp a ti mismo, por email…).</p>
+      <div class="row"><button class="good" id="copy">📋 Copiar progreso</button>${navigator.share ? `<button id="share">📤 Compartir</button>` : ""}</div>
+      <p id="msg" class="muted"></p>
+      <p><b>2. En el otro dispositivo:</b> abre esta misma pantalla, pega el texto aquí y pulsa Cargar.</p>
+      <textarea id="paste" rows="4" placeholder="Pega aquí tu progreso…" autocomplete="off" spellcheck="false"></textarea>
+      <button class="big" id="load">📥 Cargar progreso</button>
+      <p class="muted">Cargar reemplaza el progreso de este dispositivo. Nada pasa por internet salvo lo que tú envíes.</p>
+      <button class="ghost" data-go="home">← Inicio</button>`);
+    $("#copy").onclick = async () => {
+      try { await navigator.clipboard.writeText(data); $("#msg").textContent = "✅ Copiado. Pégalo en un mensaje para ti."; }
+      catch { $("#paste").value = data; $("#paste").select(); $("#msg").textContent = "Copia el texto seleccionado de abajo."; }
+    };
+    if ($("#share")) $("#share").onclick = () => navigator.share({ title: "Progreso inglés", text: data }).catch(() => {});
+    $("#load").onclick = () => {
+      const d = parseBackup($("#paste").value);
+      if (!d) return ($("#msg").textContent = "❌ Ese texto no es un progreso válido. Cópialo entero otra vez.");
+      if (!confirm("¿Reemplazar el progreso de este dispositivo?")) return;
+      Object.assign(S, d); save(); rebuild(); alert("✅ Progreso cargado."); home();
+    };
   }
 
   function cats() {
@@ -241,7 +307,7 @@ if (typeof document !== "undefined") {
     $("#reset").onclick = () => { if (confirm("¿Borrar todo tu progreso? No se puede deshacer.")) { localStorage.removeItem(KEY); location.reload(); } };
   }
 
-  const ROUTES = { home, cats, cards, grammar, dictation, interview, help };
+  const ROUTES = { home, cats, cards, grammar, dictation, interview, help, mine, backup };
   if ("speechSynthesis" in window) speechSynthesis.getVoices(); // precarga la lista de voces
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
   home();

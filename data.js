@@ -141,7 +141,7 @@ const VOCAB = {
 
 const CATS = {
   entrevista: "Entrevista", obra: "Obra y construcción", gastronomia: "Gastronomía",
-  operaciones: "Operaciones y oficina", expresiones: "Expresiones (no traducir literal)", basico: "Frases clave", verbos: "Verbos irregulares"
+  mias: "Mis palabras", operaciones: "Operaciones y oficina", expresiones: "Expresiones (no traducir literal)", basico: "Frases clave", verbos: "Verbos irregulares"
 };
 
 // [base, pasado, participio, español]
