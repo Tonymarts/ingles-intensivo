@@ -205,13 +205,14 @@ if (typeof document !== "undefined") {
       const c = queue[0];
       view(`<p class="muted">${CATS[c.cat]} · quedan ${queue.length}</p>
         <div class="card"><div class="front">${esc(c.front)}</div>${audioBtns(c.say)}
-        <div id="back" hidden><div class="back">${esc(c.back)}</div>${c.ex ? `<p class="ex">${esc(c.ex)}</p>${audioBtns(c.ex)}` : ""}
+        <p class="hint" id="hint1">1️⃣ Escúchala y piensa: ¿qué significa?</p>
+        <div id="back" hidden><p class="hint">2️⃣ ¿Acertaste? Repite la frase en voz alta y elige abajo con sinceridad.</p><div class="back">${esc(c.back)}</div>${c.ex ? `<p class="ex">${esc(c.ex)}</p>${audioBtns(c.ex)}` : ""}
         <button id="mic">🎤 Repetir en voz alta</button><p id="heard" class="muted"></p></div></div>
         <button class="big" id="show">Ver respuesta</button>
         <div class="row" id="grade" hidden><button class="bad" id="no">❌ No la sabía</button><button class="good" id="yes">✅ La sabía</button></div>
         <button class="ghost" data-go="home">← Inicio</button>`);
       say(c.say);
-      $("#show").onclick = () => { $("#back").hidden = false; $("#grade").hidden = false; $("#show").hidden = true; };
+      $("#show").onclick = () => { $("#back").hidden = false; $("#hint1").hidden = true; $("#grade").hidden = false; $("#show").hidden = true; };
       $("#mic").onclick = () => listen(c.ex || c.front, $("#heard"));
       const grade = ok => {
         if (!S.cards[c.id]) S.daily.fresh++;
@@ -309,6 +310,11 @@ if (typeof document !== "undefined") {
 
   const ROUTES = { home, cats, cards, grammar, dictation, interview, help, mine, backup };
   if ("speechSynthesis" in window) speechSynthesis.getVoices(); // precarga la lista de voces
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
+  if ("serviceWorker" in navigator) {
+    const hadSW = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.register("sw.js");
+    // Al llegar una versión nueva, recarga una vez para mostrarla (no en la primera instalación).
+    navigator.serviceWorker.addEventListener("controllerchange", () => { if (hadSW) location.reload(); });
+  }
   home();
 }
